@@ -1,14 +1,12 @@
+use crate::mode::Mode;
+use crate::render::Render;
+use image::DynamicImage;
+use minifb::{Key, Window, WindowOptions};
 use std::collections::HashMap;
 use std::thread;
-use minifb::{Window, WindowOptions, Key};
 use std::time::{Duration, Instant};
-use image::DynamicImage;
 
-use crate::render::Render;
-use crate::mode::Mode;
-
-pub trait EntityBase {
-}
+pub trait EntityBase {}
 
 pub trait GameBase {
     fn update_start(&mut self, window: &Window, mode: &mut Mode);
@@ -19,23 +17,23 @@ pub trait GameBase {
     fn draw_over(&mut self, render: &mut Render);
 }
 
-pub struct Game<T:EntityBase> {
-    name     : String,
-    width    : usize,
-    height   : usize,
-    assets   : Vec<String>,
-    images   : HashMap<String, DynamicImage>,
-    pub entities : HashMap<String, T>,
+pub struct Game<T: EntityBase> {
+    name: String,
+    width: usize,
+    height: usize,
+    assets: Vec<String>,
+    images: HashMap<String, DynamicImage>,
+    pub entities: HashMap<String, T>,
 }
 
-impl<T:EntityBase> Game<T> {
-    pub fn new(name: &str, width: usize, height: usize) -> Self{
+impl<T: EntityBase> Game<T> {
+    pub fn new(name: &str, width: usize, height: usize) -> Self {
         Self {
-            name   : name.to_string(),
-            width  : width,
-            height : height,
-            assets : Vec::new(), 
-            images : HashMap::new(),
+            name: name.to_string(),
+            width: width,
+            height: height,
+            assets: Vec::new(),
+            images: HashMap::new(),
             entities: HashMap::new(),
         }
     }
@@ -43,7 +41,7 @@ impl<T:EntityBase> Game<T> {
     pub fn add_image(&mut self, path: &str) {
         self.assets.push(path.to_string());
     }
-    
+
     pub fn load_images(&mut self) {
         for img in &self.assets {
             match image::open(img) {
@@ -57,7 +55,7 @@ impl<T:EntityBase> Game<T> {
         }
     }
 
-    pub fn get_image(&self, filename: &str) -> DynamicImage{
+    pub fn get_image(&self, filename: &str) -> DynamicImage {
         self.images.get(filename).unwrap().clone()
     }
 
@@ -91,7 +89,6 @@ impl<T:EntityBase> Game<T> {
     }
 
     pub fn start(&mut self) {
-
         const FRAME_RATE: u64 = 1_000_000 / 60;
 
         let width = self.width;
@@ -99,32 +96,29 @@ impl<T:EntityBase> Game<T> {
 
         let mut mode = Mode::Start;
 
-        let mut window = Window::new(
-            &self.name,
-            width,
-            height,
-            WindowOptions::default(),
-        ).unwrap_or_else(|e| {
-            panic!("{}", e);
-        });
+        let mut window = Window::new(&self.name, width, height, WindowOptions::default())
+            .unwrap_or_else(|e| {
+                panic!("{}", e);
+            });
 
-        let mut render =  Render {
+        let mut render = Render {
             buffer: vec![0; width * height],
             width: width,
             height: height,
         };
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
-            
             let loop_start = Instant::now();
-            
+
             for pixel in render.buffer.iter_mut() {
                 *pixel = 0;
             }
 
             self.update(&window, &mut mode);
             self.draw(&mut render, &mode);
-            window.update_with_buffer(&render.buffer, width, height).unwrap();
+            window
+                .update_with_buffer(&render.buffer, width, height)
+                .unwrap();
 
             let loop_end = Instant::now();
             let loop_duration = loop_end - loop_start;
