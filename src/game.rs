@@ -5,87 +5,36 @@ use minifb::{Key, Window, WindowOptions};
 use std::collections::HashMap;
 use std::thread;
 use std::time::{Duration, Instant};
+use crate::entity::Entity;
 
-pub trait EntityBase {}
 
-pub trait GameBase {
-    fn update_start(&mut self, window: &Window, mode: &mut Mode);
-    fn update_play(&mut self, window: &Window, mode: &mut Mode);
-    fn update_over(&mut self, window: &Window, mode: &mut Mode);
-    fn draw_start(&mut self, render: &mut Render);
-    fn draw_play(&mut self, render: &mut Render);
-    fn draw_over(&mut self, render: &mut Render);
-}
-
-pub struct Game<T: EntityBase> {
+pub struct Game {
     name: String,
     width: usize,
     height: usize,
-    assets: Vec<String>,
     images: HashMap<String, DynamicImage>,
-    pub entities: HashMap<String, T>,
 }
 
-impl<T: EntityBase> Game<T> {
+impl Game {
     pub fn new(name: &str, width: usize, height: usize) -> Self {
         Self {
             name: name.to_string(),
             width: width,
             height: height,
-            assets: Vec::new(),
             images: HashMap::new(),
-            entities: HashMap::new(),
         }
     }
 
-    pub fn add_image(&mut self, path: &str) {
-        self.assets.push(path.to_string());
-    }
-
     pub fn load_images(&mut self) {
-        for img in &self.assets {
-            match image::open(img) {
-                Ok(dynamic_image) => {
-                    self.images.insert(img.to_string(), dynamic_image);
-                }
-                Err(e) => {
-                    eprintln!("Failed to load asset {}: {}", img, e);
-                }
+        for img in self.set_assets() {
+            if let Some(dynamic_image) = image::open(&img).ok() {
+                self.images.insert(img.to_string(), dynamic_image);
             }
         }
     }
 
     pub fn get_image(&self, filename: &str) -> DynamicImage {
         self.images.get(filename).unwrap().clone()
-    }
-
-    pub fn add_entity(&mut self, name: &str, entity: T) {
-        self.entities.insert(name.to_string(), entity);
-    }
-
-    pub fn get_entity(&self, name: &str) -> Option<&T> {
-        self.entities.get(name)
-    }
-
-    pub fn get_entity_mut(&mut self, name: &str) -> Option<&mut T> {
-        self.entities.get_mut(name)
-    }
-
-    fn update(&mut self, window: &Window, mode: &mut Mode) {
-        match mode {
-            Mode::Start => self.update_start(window, mode),
-            Mode::Play => self.update_play(window, mode),
-            Mode::Over => self.update_over(window, mode),
-        }
-    }
-
-    fn draw(&mut self, render: &mut Render, mode: &Mode) {
-        println!("Drawing game...");
-        match mode {
-            Mode::Start => self.draw_start(render),
-            Mode::Play => self.draw_play(render),
-            Mode::Over => self.draw_over(render),
-        }
     }
 
     pub fn start(&mut self) {
@@ -100,12 +49,16 @@ impl<T: EntityBase> Game<T> {
             .unwrap_or_else(|e| {
                 panic!("{}", e);
             });
-
+        
         let mut render = Render {
             buffer: vec![0; width * height],
             width: width,
             height: height,
         };
+
+        self.load_images();
+
+        let mut entities = self.set_entities();
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
             let loop_start = Instant::now();
@@ -114,11 +67,22 @@ impl<T: EntityBase> Game<T> {
                 *pixel = 0;
             }
 
-            self.update(&window, &mut mode);
-            self.draw(&mut render, &mode);
-            window
-                .update_with_buffer(&render.buffer, width, height)
-                .unwrap();
+            match mode {
+                Mode::Start => {
+                    self.update_start(&window, &mut mode, &mut entities);
+                    self.draw_start(&mut render, &mut entities);
+                },
+                Mode::Play => {
+                    self.update_play(&window, &mut mode, &mut entities);
+                    self.draw_play(&mut render, &mut entities);
+                },
+                Mode::Over => {
+                    self.update_over(&window, &mut mode, &mut entities);
+                    self.draw_over(&mut render, &mut entities);
+                },
+            }
+
+            window.update_with_buffer(&render.buffer, width, height).unwrap();
 
             let loop_end = Instant::now();
             let loop_duration = loop_end - loop_start;
@@ -128,4 +92,15 @@ impl<T: EntityBase> Game<T> {
             }
         }
     }
+}
+
+pub trait GameBase {
+    fn set_assets(&self) ->  Vec<String>;
+    fn set_entities(&self) -> HashMap<String, Entity>;
+    fn update_start(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
+    fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
+    fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
+    fn draw_start(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
+    fn draw_play(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
+    fn draw_over(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
 }
