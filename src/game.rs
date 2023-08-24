@@ -33,8 +33,8 @@ impl Game {
         }
     }
 
-    pub fn get_image(&self, filename: &str) -> DynamicImage {
-        self.images.get(filename).unwrap().clone()
+    pub fn get_image(&self, filename: &str) -> Option<DynamicImage> {
+        self.images.get(filename).map(|img|img.clone())
     }
 
     pub fn start(&mut self) {
