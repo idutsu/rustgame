@@ -3,6 +3,20 @@ use minifb::{Window, Key};
 use crate::render::Render;
 
 
+type EntityId = u32;
+
+#[derive(Hash, PartialEq, Eq)]
+pub enum EntityType {
+    Player,
+    Enemy,
+}
+
+#[derive(Hash, PartialEq, Eq)]
+pub struct EntityKey {
+    pub id : EntityId,
+    pub entity_type : EntityType,
+}
+
 pub enum Entity {
     Player(Player),
     Enemy(Enemy),

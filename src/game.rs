@@ -5,7 +5,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::collections::HashMap;
 use std::thread;
 use std::time::{Duration, Instant};
-use crate::entity::Entity;
+use crate::entity::{ Entity, EntityKey };
 
 
 pub struct Game {
@@ -96,11 +96,11 @@ impl Game {
 
 pub trait GameBase {
     fn set_assets(&self) ->  Vec<String>;
-    fn set_entities(&self) -> HashMap<String, Entity>;
-    fn update_start(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
-    fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
-    fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<String, Entity>);
-    fn draw_start(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
-    fn draw_play(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
-    fn draw_over(&mut self, render: &mut Render, entities: &mut  HashMap<String, Entity>);
+    fn set_entities(&self) -> HashMap<EntityKey, Entity>;
+    fn update_start(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
+    fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
+    fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
+    fn draw_start(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
+    fn draw_play(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
+    fn draw_over(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
 }
