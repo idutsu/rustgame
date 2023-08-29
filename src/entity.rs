@@ -1,7 +1,7 @@
 use image::DynamicImage;
 use minifb::{Window, Key};
 use crate::render::Render;
-
+use crate::game::Game;
 
 type EntityId = u32;
 
@@ -23,18 +23,36 @@ pub enum Entity {
 }
 
 pub struct Player {
-    pub image: DynamicImage,
-    pub x: f32,
-    pub y: f32,
+    pub image : DynamicImage,
+    pub x     : f32,
+    pub y     : f32,
 }
 
 impl Player {
-    pub fn update(&mut self, window: &Window) {
+    pub fn update(&mut self, game: &mut Game, window: &Window) {
+
+        let game_width = game.width as f32;
+        let player_width = self.image.width() as f32;
+
         if window.is_key_down(Key::Right) {
-            self.x += 2.0;
+            if self.x + player_width < game_width {
+                self.x += 2.0;
+            } else {
+                self.x = game_width - player_width;
+            }
         }
         if window.is_key_down(Key::Left) {
-            self.x -= 2.0;
+            if self.x >= 0.0 {
+                self.x -= 2.0;
+            } else {
+                self.x = 0.0;
+            }
+        }
+        if window.is_key_down(Key::Up) {
+            self.y -= 2.0;
+        }
+        if window.is_key_down(Key::Down) {
+            self.y += 2.0;
         }
     }
     pub fn draw(&mut self, render: &mut Render) {
@@ -42,15 +60,14 @@ impl Player {
     }
 }
 
-
 pub struct Enemy {
-    pub image: DynamicImage,
-    pub x: f32,
-    pub y: f32,
+    pub image : DynamicImage,
+    pub x     : f32,
+    pub y     : f32,
 }
 
 impl Enemy {
-    pub fn update(&mut self, window: &Window) {
+    pub fn update(&mut self, game: &mut Game, window: &Window) {
         self.x += 0.50;
     }
     pub fn draw(&mut self, render: &mut Render) {
@@ -63,7 +80,6 @@ impl Enemy {
     }
 }
 
-
 impl Entity {
     pub fn move_enemy(&mut self, window: &Window) {
         if let Entity::Enemy(enemy) = self {
@@ -71,10 +87,10 @@ impl Entity {
         }
     }
 
-    pub fn update(&mut self, window: &Window) {
+    pub fn update(&mut self, game: &mut Game, window: &Window) {
         match self {
-            Entity::Player(player) => player.update(window),
-            Entity::Enemy(enemy) => enemy.update(window),
+            Entity::Player(player) => player.update(game, window),
+            Entity::Enemy(enemy) => enemy.update(game, window),
         }
 
     }

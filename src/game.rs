@@ -1,40 +1,47 @@
-use crate::mode::Mode;
-use crate::render::Render;
 use image::DynamicImage;
 use minifb::{Key, Window, WindowOptions};
 use std::collections::HashMap;
 use std::thread;
 use std::time::{Duration, Instant};
+use crate::mode::Mode;
+use crate::render::Render;
 use crate::entity::{ Entity, EntityKey };
+
+pub type ImageFilePaths = Vec<String>;
+pub type EntityHashMap = HashMap<EntityKey, Entity>;
 
 
 pub struct Game {
-    name: String,
-    width: usize,
-    height: usize,
-    images: HashMap<String, DynamicImage>,
+    pub name   : String,
+    pub width  : usize,
+    pub height : usize,
+    images     : HashMap<String, DynamicImage>,
+    delta_time : Duration,
 }
 
 impl Game {
     pub fn new(name: &str, width: usize, height: usize) -> Self {
         Self {
-            name: name.to_string(),
-            width: width,
-            height: height,
-            images: HashMap::new(),
+            name       : name.to_string(),
+            width      : width,
+            height     : height,
+            images     : HashMap::new(),
+            delta_time : Duration::new(0,0),
         }
     }
 
-    pub fn load_images(&mut self) {
-        for img in self.set_assets() {
-            if let Some(dynamic_image) = image::open(&img).ok() {
-                self.images.insert(img.to_string(), dynamic_image);
+    fn load_images(&mut self) {
+        for filename in self.add_images() {
+            let images_dir = String::from("./images/");
+            let path = images_dir + &filename;
+            if let Some(dynamic_image) = image::open(&path).ok() {
+                self.images.insert(filename, dynamic_image);
             }
         }
     }
 
-    pub fn get_image(&self, filename: &str) -> Option<DynamicImage> {
-        self.images.get(filename).map(|img|img.clone())
+    pub fn get_image(&self, path: &str) -> Option<DynamicImage> {
+        self.images.get(path).map(|img|img.clone())
     }
 
     pub fn start(&mut self) {
@@ -58,7 +65,7 @@ impl Game {
 
         self.load_images();
 
-        let mut entities = self.set_entities();
+        let mut entities = self.add_entities();
 
         while window.is_open() && !window.is_key_down(Key::Escape) {
             let loop_start = Instant::now();
@@ -87,6 +94,7 @@ impl Game {
             let loop_end = Instant::now();
             let loop_duration = loop_end - loop_start;
             let frame_time = Duration::from_micros(FRAME_RATE);
+            self.delta_time = loop_duration;
             if loop_duration < frame_time {
                 thread::sleep(frame_time - loop_duration);
             }
@@ -95,12 +103,12 @@ impl Game {
 }
 
 pub trait GameBase {
-    fn set_assets(&self) ->  Vec<String>;
-    fn set_entities(&self) -> HashMap<EntityKey, Entity>;
-    fn update_start(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
-    fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
-    fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut  HashMap<EntityKey, Entity>);
-    fn draw_start(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
-    fn draw_play(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
-    fn draw_over(&mut self, render: &mut Render, entities: &mut  HashMap<EntityKey, Entity>);
+    fn add_images(&self) -> ImageFilePaths;
+    fn add_entities(&self) -> EntityHashMap;
+    fn update_start(&mut self, window: &Window, mode: &mut Mode, entities: &mut EntityHashMap);
+    fn draw_start(&mut self, render: &mut Render, entities: &mut EntityHashMap);
+    fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut EntityHashMap);
+    fn draw_play(&mut self, render: &mut Render, entities: &mut EntityHashMap);
+    fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut EntityHashMap);
+    fn draw_over(&mut self, render: &mut Render, entities: &mut EntityHashMap);
 }

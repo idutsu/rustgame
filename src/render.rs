@@ -1,9 +1,9 @@
 use image::DynamicImage;
 
 pub struct Render {
-    pub buffer: Vec<u32>,
-    pub width: usize,
-    pub height: usize,
+    pub buffer : Vec<u32>,
+    pub width  : usize,
+    pub height : usize,
 }
 
 impl Render {
