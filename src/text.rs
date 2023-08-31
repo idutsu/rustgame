@@ -30,12 +30,12 @@ pub fn get_sentence_images(sentence: &str, map: &HashMap<char, DynamicImage>) ->
 
 
 
-// fn main() {
-//     let alphabet_image = DynamicImage::new_rgba8(2600, 100);  // 仮のアルファベット画像
-//     let map = split_alphabet_image(alphabet_image);
+fn main() {
+    let alphabet_image = DynamicImage::new_rgba8(2600, 100);  // 仮のアルファベット画像
+    let map = split_alphabet_image(alphabet_image);
 
-//     let sentence = "hello";
-//     let sentence_images = get_sentence_images(sentence, &map);
+    let sentence = "hello";
+    let sentence_images = get_sentence_images(sentence, &map);
     
-//     // ここでsentence_imagesを使用して描画などを行う
-// }
+    // ここでsentence_imagesを使用して描画などを行う
+}

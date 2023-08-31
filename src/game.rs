@@ -15,6 +15,8 @@ pub struct Game {
     pub name   : String,
     pub width  : usize,
     pub height : usize,
+    pub score  : usize,
+    pub level  : usize,
     images     : HashMap<String, DynamicImage>,
     delta_time : Duration,
 }
@@ -25,6 +27,8 @@ impl Game {
             name       : name.to_string(),
             width      : width,
             height     : height,
+            score      : 0,
+            level      : 0,
             images     : HashMap::new(),
             delta_time : Duration::new(0,0),
         }

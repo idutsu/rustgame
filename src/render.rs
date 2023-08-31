@@ -42,6 +42,10 @@ impl Render {
             }
         }
     }
+
+    pub fn text(&mut self, img: &DynamicImage, text:&str, scale: usize) {
+
+    }
     
     pub fn color(&mut self, color: u32) {
         for pixel in self.buffer.iter_mut() {

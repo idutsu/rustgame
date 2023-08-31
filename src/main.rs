@@ -10,10 +10,22 @@ use mode::Mode;
 mod entity;
 use entity::{Entity, EntityKey, EntityType, Player, Enemy};
 
+const PLAYER_KEY: EntityKey = EntityKey{
+    id: 0,
+    entity_type: EntityType::Player,
+};
+
+const ENEMY_KEY: EntityKey = EntityKey{
+    id: 1,
+    entity_type: EntityType::Enemy,
+};
+
+
 impl GameBase for Game {
 
     fn add_images(&self) -> ImageFilePaths {
         let mut assets = Vec::new();
+        assets.push(String::from("font.png"));
         assets.push(String::from("player.png"));
         assets.push(String::from("enemy.png"));
         assets
@@ -67,28 +79,38 @@ impl GameBase for Game {
 
     fn update_play(&mut self, window: &Window, mode: &mut Mode, entities: &mut EntityHashMap) {
         
-        if let Some(entity) = entities.get_mut(&EntityKey{id:0,entity_type:EntityType::Player}) {
-            entity.update(self, window);
+        if let Some(player) = entities.get_mut(&PLAYER_KEY) {
+            player.update(self, window);
         }
 
-        if let Some(entity) = entities.get_mut(&EntityKey{id:1,entity_type:EntityType::Enemy}) {
-            entity.update(self, window);
+        if let Some(entity) = entities.get_mut(&ENEMY_KEY) {
+            match entity {
+                Entity::Enemy(enemy) => enemy.move_randomly(self, window),
+                _ => {}
+            }
+        }
+
+        if let Some(player) = entities.get(&PLAYER_KEY) {
+            if let Some(enemy) = entities.get(&ENEMY_KEY) {
+                let hit = player.hit(enemy);
+                if hit {
+                    *mode = Mode::Over;
+                }
+            }
         }
        
-        // println!("Updating in play mode. State:");
     }
 
     fn draw_play(&mut self, render: &mut Render, entities: &mut EntityHashMap) {
 
-        if let Some(entity) = entities.get_mut(&EntityKey{id:0,entity_type:EntityType::Player}) {
+        if let Some(entity) = entities.get_mut(&PLAYER_KEY) {
             entity.draw(render);
         }
     
-        if let Some(entity) = entities.get_mut(&EntityKey{id:1,entity_type:EntityType::Enemy}) {
+        if let Some(entity) = entities.get_mut(&ENEMY_KEY) {
             entity.draw(render);
         }
 
-        // println!("Drawing in play mode. State:");
     }
 
     fn update_over(&mut self, window: &Window, mode: &mut Mode, entities: &mut EntityHashMap) {
